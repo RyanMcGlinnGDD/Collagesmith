@@ -1,5 +1,4 @@
 import { getCropParams, drawCollage } from './drawCollage'
-import { GridLayout } from './gridLayout'
 import { LoadedImage } from '../types'
 import { describe, it, expect, vi } from 'vitest'
 
