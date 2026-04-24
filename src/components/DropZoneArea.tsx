@@ -10,8 +10,12 @@ interface Props {
 
 export function DropZoneArea({ onFiles }: Props) {
   const handleDrop = async (files: File[]) => {
-    const loaded = await loadImages(files)
-    onFiles(loaded)
+    try {
+      const loaded = await loadImages(files)
+      onFiles(loaded)
+    } catch (err) {
+      console.error('Failed to load dropped images:', err)
+    }
   }
 
   return (
