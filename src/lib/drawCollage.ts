@@ -7,6 +7,9 @@ export function getCropParams(
   tw: number,
   th: number
 ): { sx: number; sy: number; sw: number; sh: number } {
+  if (iw <= 0 || ih <= 0 || tw <= 0 || th <= 0) {
+    return { sx: 0, sy: 0, sw: 0, sh: 0 }
+  }
   const scale = Math.max(tw / iw, th / ih)
   const sw = tw / scale
   const sh = th / scale

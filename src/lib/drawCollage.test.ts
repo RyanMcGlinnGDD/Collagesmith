@@ -36,6 +36,10 @@ describe('getCropParams', () => {
     expect(p.sw).toBeCloseTo(160)
     expect(p.sh).toBeCloseTo(90)
   })
+
+  it('returns zero rect for zero-dimension inputs', () => {
+    expect(getCropParams(0, 100, 160, 90)).toEqual({ sx: 0, sy: 0, sw: 0, sh: 0 })
+  })
 })
 
 describe('drawCollage', () => {
@@ -62,6 +66,7 @@ describe('drawCollage', () => {
   it('fills the canvas black before drawing', () => {
     const ctx = makeCtx()
     drawCollage(ctx, makeCanvas(320, 180), [], { cols: 0, rows: 0 })
+    expect(ctx.fillStyle).toBe('#000000')
     expect(ctx.fillRect).toHaveBeenCalledWith(0, 0, 320, 180)
   })
 
@@ -82,6 +87,17 @@ describe('drawCollage', () => {
     // drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
     expect(calls[0][5]).toBeCloseTo(0)    // first tile dx = 0
     expect(calls[1][5]).toBeCloseTo(160)  // second tile dx = 160
+  })
+
+  it('places second-row tile offset by tileH', () => {
+    const ctx = makeCtx()
+    // canvas 160×180, grid 1×2 → tileW=160, tileH=90
+    const images = [makeImage(160, 90), makeImage(160, 90)]
+    drawCollage(ctx, makeCanvas(160, 180), images, { cols: 1, rows: 2 })
+    const calls = (ctx.drawImage as ReturnType<typeof vi.fn>).mock.calls
+    // drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh)
+    expect(calls[0][6]).toBeCloseTo(0)   // first tile dy = 0
+    expect(calls[1][6]).toBeCloseTo(90)  // second tile dy = 90
   })
 
   it('skips drawing for empty trailing slots', () => {
