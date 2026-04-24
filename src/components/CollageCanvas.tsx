@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Box } from '@mantine/core'
 import { LoadedImage } from '../types'
 import { gridLayout } from '../lib/gridLayout'
 import { drawCollage } from '../lib/drawCollage'
@@ -18,7 +17,10 @@ export function CollageCanvas({ images }: Props) {
     if (!container) return
     const observer = new ResizeObserver(([entry]) => {
       const width = entry.contentRect.width
-      setCanvasSize({ width, height: Math.round(width * 9 / 16) })
+      setCanvasSize((prev) => {
+        if (prev.width === width) return prev
+        return { width, height: Math.round(width * 9 / 16) }
+      })
     })
     observer.observe(container)
     return () => observer.disconnect()
@@ -35,8 +37,8 @@ export function CollageCanvas({ images }: Props) {
   }, [images, canvasSize])
 
   return (
-    <Box ref={containerRef as React.Ref<HTMLDivElement>} style={{ width: '100%' }}>
+    <div ref={containerRef} style={{ width: '100%' }}>
       <canvas ref={canvasRef} style={{ display: 'block', width: '100%' }} />
-    </Box>
+    </div>
   )
 }

@@ -16,7 +16,8 @@ export function HomePage() {
 
   const handleAddMoreChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = Array.from(e.target.files ?? [])
+      const input = e.target
+      const files = Array.from(input.files ?? [])
       if (files.length === 0) return
       try {
         const loaded = await loadImages(files)
@@ -24,7 +25,7 @@ export function HomePage() {
       } catch (err) {
         console.error('Failed to load images:', err)
       }
-      e.target.value = ''
+      input.value = ''
     },
     [handleFiles]
   )
