@@ -107,7 +107,7 @@ describe('computeProxies', () => {
     //   'a'  'b'  null    (row 0, indices 0-2)
     //   'c'  'b'  'b'     (row 1, indices 3-5)
     // Blank at (row=0, col=2). Without wrapping, 'c' at (row=1, col=0) is not adjacent.
-    // With toroidal wrap, (dr=-1, dc=+1) → col (3 % 3) = 0, row = 1 → 'c' is adjacent.
+    // With toroidal wrap, (dr=-1, dc=+1) → row ((0-1)%2+2)%2=1, col ((2+1)%3+3)%3=0 → index 3='c', so 'c' is adjacent.
     // Adjacent IDs: {'a', 'b', 'c'}. Only 'd' is non-adjacent → proxy must be 'd'.
     const slots = ['a', 'b', null, 'c', 'b', 'b']
     const ids = ['a', 'b', 'c', 'd']
