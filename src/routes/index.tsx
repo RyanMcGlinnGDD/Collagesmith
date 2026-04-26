@@ -1,12 +1,14 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { AppShell, Box, Button, Group, NumberInput, Paper, Radio, Stack, Text, ActionIcon } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import { Dropzone, IMAGE_MIME_TYPE } from '@mantine/dropzone'
-import { IconArrowsShuffle, IconRefresh, IconPlus, IconTrash, IconUpload } from '@tabler/icons-react'
+import { IconArrowsShuffle, IconRefresh, IconPlus, IconTrash, IconUpload, IconDownload } from '@tabler/icons-react'
 import { modals } from '@mantine/modals'
 import { LoadedImage } from '../types'
 import { DropZoneArea } from '../components/DropZoneArea'
 import { CollageCanvas } from '../components/CollageCanvas'
 import { ImageList } from '../components/ImageList'
+import { ExportModal } from '../components/ExportModal'
 import { loadImages } from '../lib/loadImages'
 import { computeProxies } from '../lib/computeProxies'
 
@@ -41,6 +43,7 @@ export function HomePage() {
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dragCounterRef = useRef(0)
+  const [exportOpened, { open: openExport, close: closeExport }] = useDisclosure(false)
 
   const tileARValue =
     tileAR === '16:9' ? 16 / 9 :
@@ -275,6 +278,14 @@ export function HomePage() {
                   <ActionIcon
                     variant="subtle"
                     size="lg"
+                    onClick={openExport}
+                    aria-label="Export collage"
+                  >
+                    <IconDownload size={18} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="subtle"
+                    size="lg"
                     color="red"
                     onClick={handleReset}
                     aria-label="Reset collage"
@@ -385,6 +396,13 @@ export function HomePage() {
             )}
         </AppShell.Main>
       </AppShell>
+      <ExportModal
+        opened={exportOpened}
+        onClose={closeExport}
+        images={orderedForCanvas}
+        grid={grid}
+        aspectRatio={aspectRatio}
+      />
     </>
   )
 }
