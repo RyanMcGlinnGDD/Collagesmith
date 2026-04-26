@@ -54,10 +54,11 @@ describe('drawCollage', () => {
     return { width: w, height: h } as HTMLCanvasElement
   }
 
-  function makeImage(naturalWidth: number, naturalHeight: number): LoadedImage {
+  function makeImage(naturalWidth: number, naturalHeight: number, id = '1'): LoadedImage {
     return {
-      id: '1',
+      id,
       name: 'test.jpg',
+      url: 'blob:test',
       element: { naturalWidth, naturalHeight } as HTMLImageElement,
     }
   }
@@ -99,11 +100,24 @@ describe('drawCollage', () => {
     expect(calls[1][6]).toBeCloseTo(90)  // second tile dy = 90
   })
 
-  it('skips drawing for empty trailing slots', () => {
+  it('skips drawing for null slots', () => {
     const ctx = makeCtx()
-    // 3 images in a 2×2 grid → 4 slots, only 3 drawn
-    const images = [makeImage(100, 100), makeImage(100, 100), makeImage(100, 100)]
+    // 2 images + 1 null in a 2×2 grid → only 2 drawn
+    const images: (LoadedImage | null)[] = [makeImage(100, 100), null, makeImage(100, 100), null]
     drawCollage(ctx, makeCanvas(320, 180), images, { cols: 2, rows: 2 })
-    expect(ctx.drawImage).toHaveBeenCalledTimes(3)
+    expect(ctx.drawImage).toHaveBeenCalledTimes(2)
+  })
+
+  it('applies cropOffset to shift the source region', () => {
+    const ctx = makeCtx()
+    // image: 400×100, tile: 160×90
+    // scale = max(160/400, 90/100) = 0.9; sw ≈ 177.78, sh = 100
+    // center sx ≈ 111.11; offset=1 → sx = (400-177.78)/2 + 1*(400-177.78)/2 ≈ 222.22
+    const offsets = new Map([['1', 1]])
+    drawCollage(ctx, makeCanvas(160, 90), [makeImage(400, 100)], { cols: 1, rows: 1 }, offsets)
+    const call = (ctx.drawImage as ReturnType<typeof vi.fn>).mock.calls[0]
+    // sx (arg index 1) should be ~222.22, not ~111.11
+    expect(call[1]).toBeCloseTo(222.22, 1)
+    expect(call[2]).toBeCloseTo(0) // sy unchanged (horizontal crop)
   })
 })

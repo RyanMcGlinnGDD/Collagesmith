@@ -1,13 +1,10 @@
 import { LoadedImage } from '../types'
 
-function loadImageElement(file: File): Promise<HTMLImageElement> {
+function loadImageElement(file: File): Promise<{ element: HTMLImageElement; url: string }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file)
     const img = new Image()
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      resolve(img)
-    }
+    img.onload = () => resolve({ element: img, url })
     img.onerror = () => {
       URL.revokeObjectURL(url)
       reject(new Error(`Failed to load image: ${file.name}`))
@@ -19,11 +16,12 @@ function loadImageElement(file: File): Promise<HTMLImageElement> {
 export async function loadImages(files: File[]): Promise<LoadedImage[]> {
   return Promise.all(
     files.map(async (file) => {
-      const element = await loadImageElement(file)
+      const { element, url } = await loadImageElement(file)
       return {
         id: crypto.randomUUID(),
         element,
         name: file.name,
+        url,
       }
     })
   )

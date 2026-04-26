@@ -7,6 +7,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { MantineProvider } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { RootLayout } from './routes/__root'
 import { HomePage } from './routes/index'
 import '@mantine/core/styles.css'
@@ -25,7 +26,9 @@ declare module '@tanstack/react-router' {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MantineProvider>
-      <RouterProvider router={router} />
+      <ModalsProvider>
+        <RouterProvider router={router} />
+      </ModalsProvider>
     </MantineProvider>
   </StrictMode>
 )
