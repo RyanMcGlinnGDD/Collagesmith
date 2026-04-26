@@ -88,4 +88,44 @@ describe('computeProxies', () => {
     expect(result.size).toBe(4)
     for (const [, id] of result) expect(id).toBe('a')
   })
+
+  it('treats right-edge diagonal tile as a wrapped neighbor of a left-edge blank', () => {
+    // 2-row × 3-col grid:
+    //   null  'b'  'a'    (row 0, indices 0-2)
+    //   'b'   'b'  'c'    (row 1, indices 3-5)
+    // Blank at (row=0, col=0). Without wrapping, 'c' at (row=1, col=2) is not adjacent.
+    // With toroidal wrap, (dr=-1, dc=-1) → (row=1, col=2) = 'c', so 'c' becomes adjacent.
+    // Adjacent IDs: {'a', 'b', 'c'}. Only 'd' is non-adjacent → proxy must be 'd'.
+    const slots = [null, 'b', 'a', 'b', 'b', 'c']
+    const ids = ['a', 'b', 'c', 'd']
+    const result = computeProxies(slots, ids, { cols: 3, rows: 2 })
+    expect(result.get(0)).toBe('d')
+  })
+
+  it('treats left-edge diagonal tile as a wrapped neighbor of a right-edge blank', () => {
+    // 2-row × 3-col grid:
+    //   'a'  'b'  null    (row 0, indices 0-2)
+    //   'c'  'b'  'b'     (row 1, indices 3-5)
+    // Blank at (row=0, col=2). Without wrapping, 'c' at (row=1, col=0) is not adjacent.
+    // With toroidal wrap, (dr=-1, dc=+1) → col (3 % 3) = 0, row = 1 → 'c' is adjacent.
+    // Adjacent IDs: {'a', 'b', 'c'}. Only 'd' is non-adjacent → proxy must be 'd'.
+    const slots = ['a', 'b', null, 'c', 'b', 'b']
+    const ids = ['a', 'b', 'c', 'd']
+    const result = computeProxies(slots, ids, { cols: 3, rows: 2 })
+    expect(result.get(2)).toBe('d')
+  })
+
+  it('treats the opposite corner as a wrapped diagonal neighbor of a corner blank', () => {
+    // 3-row × 3-col grid:
+    //   null  'b'  'b'    (row 0, indices 0-2)
+    //   'b'   'b'  'b'    (row 1, indices 3-5)
+    //   'b'   'b'  'a'    (row 2, indices 6-8)
+    // Blank at (row=0, col=0). Without wrapping, 'a' at (row=2, col=2) is not adjacent.
+    // With toroidal wrap, (dr=-1, dc=-1) → (row=2, col=2) = 'a', so 'a' becomes adjacent.
+    // Adjacent IDs: {'a', 'b'}. Only 'c' is non-adjacent → proxy must be 'c'.
+    const slots = [null, 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'a']
+    const ids = ['a', 'b', 'c']
+    const result = computeProxies(slots, ids, { cols: 3, rows: 3 })
+    expect(result.get(0)).toBe('c')
+  })
 })

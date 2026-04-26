@@ -42,13 +42,12 @@ export function computeProxies(
       const proxyId = result.get(idx)
       if (proxyId !== undefined) adjacentIds.add(proxyId)
     }
-    // 8 neighbors
+    // 8 neighbors — toroidal: opposite edges are treated as adjacent
     for (let dr = -1; dr <= 1; dr++) {
       for (let dc = -1; dc <= 1; dc++) {
         if (dr === 0 && dc === 0) continue
-        const adjRow = blankRow + dr
-        const adjCol = blankCol + dc
-        if (adjRow < 0 || adjRow >= grid.rows || adjCol < 0 || adjCol >= grid.cols) continue
+        const adjRow = ((blankRow + dr) % grid.rows + grid.rows) % grid.rows
+        const adjCol = ((blankCol + dc) % grid.cols + grid.cols) % grid.cols
         addSlot(adjRow * grid.cols + adjCol)
       }
     }
