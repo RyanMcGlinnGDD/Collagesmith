@@ -17,6 +17,7 @@ export function ExportModal({ opened, onClose, images, grid, aspectRatio }: Prop
   const [width, setWidth] = useState(1920)
   const [height, setHeight] = useState(Math.round(1920 * aspectRatio))
   const [format, setFormat] = useState<ExportFormat>('png')
+  const [isExporting, setIsExporting] = useState(false)
 
   // Reset to defaults whenever the modal opens
   useEffect(() => {
@@ -24,6 +25,7 @@ export function ExportModal({ opened, onClose, images, grid, aspectRatio }: Prop
     setWidth(1920)
     setHeight(Math.round(1920 * aspectRatio))
     setFormat('png')
+    setIsExporting(false)
   }, [opened]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleWidthChange = (v: number | string) => {
@@ -39,22 +41,30 @@ export function ExportModal({ opened, onClose, images, grid, aspectRatio }: Prop
   }
 
   const handleExport = () => {
+    if (isExporting) return
+    setIsExporting(true)
     const canvas = document.createElement('canvas')
     canvas.width = width
     canvas.height = height
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      setIsExporting(false)
+      return
+    }
     const loadedImages = images.filter((img): img is LoadedImage => img !== null)
     drawCollage(ctx, canvas, loadedImages, grid)
     const mimeType = getExportMimeType(format)
     const quality = format === 'png' ? undefined : 0.92
     canvas.toBlob((blob) => {
+      setIsExporting(false)
       if (!blob) return
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `collage.${getExportExtension(format)}`
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
       URL.revokeObjectURL(url)
       onClose()
     }, mimeType, quality)
@@ -99,7 +109,7 @@ export function ExportModal({ opened, onClose, images, grid, aspectRatio }: Prop
         </div>
         <Group justify="flex-end" mt="xs">
           <Button variant="default" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleExport}>Export</Button>
+          <Button onClick={handleExport} loading={isExporting}>Export</Button>
         </Group>
       </Stack>
     </Modal>
