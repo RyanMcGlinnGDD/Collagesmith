@@ -18,6 +18,7 @@ function cropDirection(image: LoadedImage, tileAR: number): 'h' | 'v' | 'none' {
 }
 
 export function ImageList({ images, onRemove, cropOffsets, onCropOffsetChange, tileARValue }: Props) {
+  const thumbH = Math.round(192 / tileARValue)
   return (
     <ScrollArea>
       <Stack gap={0}>
@@ -26,7 +27,6 @@ export function ImageList({ images, onRemove, cropOffsets, onCropOffsetChange, t
           const offset = cropOffsets.get(image.id) ?? 0
           const pct = `${((offset + 1) / 2) * 100}%`
           const objectPosition = dir === 'h' ? `${pct} 50%` : dir === 'v' ? `50% ${pct}` : '50% 50%'
-          const thumbH = Math.round(192 / tileARValue)
           return (
             <Group
               key={image.id}

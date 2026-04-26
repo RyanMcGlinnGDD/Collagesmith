@@ -70,7 +70,6 @@ export function computeProxies(
     if (candidates.length === 0) {
       candidates = imageIds.filter((id) => usageCount.get(id) === minUsage)
     }
-    if (candidates.length === 0) candidates = [...imageIds]
 
     const chosen = candidates[Math.floor(Math.random() * candidates.length)]
     result.set(blankIdx, chosen)

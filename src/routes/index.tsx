@@ -52,7 +52,7 @@ export function HomePage() {
     Math.max(0.01, customARWidth) / Math.max(0.01, customARHeight)
   const clampedCols = Math.max(1, Math.min(cols, images.length || 1))
   const rows = images.length === 0 ? 0 : Math.ceil(images.length / clampedCols)
-  const grid = { cols: clampedCols, rows }
+  const grid = useMemo(() => ({ cols: clampedCols, rows }), [clampedCols, rows])
   // Canvas H/W = rows / (cols * tileAR)
   const aspectRatio = rows > 0 ? rows / (clampedCols * tileARValue) : 9 / 16
 
@@ -82,14 +82,17 @@ export function HomePage() {
   }, [gapHandling, normalizedSlots, images, grid.cols, grid.rows, proxyVersion])
 
   // What the canvas draws: real images in their slots, proxies (or null) in blank slots
-  const orderedForCanvas: (LoadedImage | null)[] = normalizedSlots.map((id, i) => {
-    if (id !== null) return imageMap.get(id) ?? null
-    if (gapHandling === 'duplicate') {
-      const proxyId = proxyMap.get(i)
-      return proxyId ? (imageMap.get(proxyId) ?? null) : null
-    }
-    return null
-  })
+  const orderedForCanvas = useMemo<(LoadedImage | null)[]>(() =>
+    normalizedSlots.map((id, i) => {
+      if (id !== null) return imageMap.get(id) ?? null
+      if (gapHandling === 'duplicate') {
+        const proxyId = proxyMap.get(i)
+        return proxyId ? (imageMap.get(proxyId) ?? null) : null
+      }
+      return null
+    }),
+    [normalizedSlots, imageMap, gapHandling, proxyMap]
+  )
 
   useEffect(() => {
     if (images.length === 0) {
@@ -126,14 +129,10 @@ export function HomePage() {
   }, [images.length])
 
   const handleFiles = useCallback((loaded: LoadedImage[]) => {
-    setImages((prev) => {
-      const next = [...prev, ...loaded]
-      if (prev.length === 0) {
-        // First load: pick the column count closest to 16:9 for the selected tile AR
-        setCols(bestCols(next.length, tileARValue))
-      }
-      return next
-    })
+    if (images.length === 0) {
+      setCols(bestCols(loaded.length, tileARValue))
+    }
+    setImages((prev) => [...prev, ...loaded])
     setCanvasSlots((prev) => {
       if (prev === null) return null
       const slots = [...prev]
@@ -144,26 +143,23 @@ export function HomePage() {
       while (idx < loaded.length) { slots.push(loaded[idx].id); idx++ }
       return slots
     })
-  }, [tileARValue])
+  }, [images.length, tileARValue])
 
   const handleTileARChange = useCallback((value: string) => {
     setTileAR(value as TileAspectRatio)
   }, [])
 
   const handleRandomize = useCallback(() => {
-    setImages((prev) => {
-      const slots: (string | null)[] = [
-        ...prev.map((img) => img.id),
-        ...Array<null>(Math.max(0, clampedCols * rows - prev.length)).fill(null),
-      ]
-      for (let i = slots.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [slots[i], slots[j]] = [slots[j], slots[i]]
-      }
-      setCanvasSlots(slots)
-      return prev
-    })
-  }, [clampedCols, rows])
+    const slots: (string | null)[] = [
+      ...images.map((img) => img.id),
+      ...Array<null>(Math.max(0, clampedCols * rows - images.length)).fill(null),
+    ]
+    for (let i = slots.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [slots[i], slots[j]] = [slots[j], slots[i]]
+    }
+    setCanvasSlots(slots)
+  }, [images, clampedCols, rows])
 
   const handleReset = useCallback(() => {
     modals.openConfirmModal({
@@ -172,23 +168,22 @@ export function HomePage() {
       labels: { confirm: 'Reset', cancel: 'Cancel' },
       confirmProps: { color: 'red' },
       onConfirm: () => {
-        setImages((prev) => { prev.forEach((img) => URL.revokeObjectURL(img.url)); return [] })
+        images.forEach((img) => URL.revokeObjectURL(img.url))
+        setImages([])
         setCanvasSlots(null)
         setCropOffsets(new Map())
       },
     })
-  }, [])
+  }, [images])
 
   const handleCropOffsetChange = useCallback((id: string, offset: number) => {
     setCropOffsets((prev) => new Map(prev).set(id, offset))
   }, [])
 
   const removeImage = useCallback((id: string) => {
-    setImages((prev) => {
-      const target = prev.find((img) => img.id === id)
-      if (target) URL.revokeObjectURL(target.url)
-      return prev.filter((img) => img.id !== id)
-    })
+    const target = images.find((img) => img.id === id)
+    if (target) URL.revokeObjectURL(target.url)
+    setImages((prev) => prev.filter((img) => img.id !== id))
     setCanvasSlots((prev) => {
       if (prev === null) return null
       return prev.map((slot) => (slot === id ? null : slot))
@@ -198,6 +193,17 @@ export function HomePage() {
       next.delete(id)
       return next
     })
+  }, [images])
+
+  const showLoadFailures = useCallback((names: string[]) => {
+    modals.open({
+      title: `${names.length} image${names.length === 1 ? '' : 's'} failed to load`,
+      children: (
+        <Stack gap="xs">
+          {names.map((name, i) => <Text key={i} size="sm">{name}</Text>)}
+        </Stack>
+      ),
+    })
   }, [])
 
   const handleAddMoreChange = useCallback(
@@ -205,27 +211,21 @@ export function HomePage() {
       const input = e.target
       const files = Array.from(input.files ?? [])
       if (files.length === 0) return
-      try {
-        const loaded = await loadImages(files)
-        handleFiles(loaded)
-      } catch (err) {
-        console.error('Failed to load images:', err)
-      }
+      const { loaded, failed } = await loadImages(files)
+      if (loaded.length > 0) handleFiles(loaded)
+      if (failed.length > 0) showLoadFailures(failed)
       input.value = ''
     },
-    [handleFiles]
+    [handleFiles, showLoadFailures]
   )
 
   const handleOverlayDrop = useCallback(async (files: File[]) => {
     setIsDraggingOver(false)
     dragCounterRef.current = 0
-    try {
-      const loaded = await loadImages(files)
-      handleFiles(loaded)
-    } catch (err) {
-      console.error('Failed to load dropped images:', err)
-    }
-  }, [handleFiles])
+    const { loaded, failed } = await loadImages(files)
+    if (loaded.length > 0) handleFiles(loaded)
+    if (failed.length > 0) showLoadFailures(failed)
+  }, [handleFiles, showLoadFailures])
 
   return (
     <>
@@ -402,6 +402,7 @@ export function HomePage() {
         images={orderedForCanvas}
         grid={grid}
         aspectRatio={aspectRatio}
+        cropOffsets={cropOffsets}
       />
     </>
   )

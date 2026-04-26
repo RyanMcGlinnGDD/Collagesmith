@@ -1,5 +1,6 @@
 import { Dropzone, IMAGE_MIME_TYPE } from '@mantine/dropzone'
-import { Group, Text, rem } from '@mantine/core'
+import { Group, Stack, Text, rem } from '@mantine/core'
+import { modals } from '@mantine/modals'
 import { IconPhoto, IconUpload, IconX } from '@tabler/icons-react'
 import { loadImages } from '../lib/loadImages'
 import { LoadedImage } from '../types'
@@ -10,11 +11,17 @@ interface Props {
 
 export function DropZoneArea({ onFiles }: Props) {
   const handleDrop = async (files: File[]) => {
-    try {
-      const loaded = await loadImages(files)
-      onFiles(loaded)
-    } catch (err) {
-      console.error('Failed to load dropped images:', err)
+    const { loaded, failed } = await loadImages(files)
+    if (loaded.length > 0) onFiles(loaded)
+    if (failed.length > 0) {
+      modals.open({
+        title: `${failed.length} image${failed.length === 1 ? '' : 's'} failed to load`,
+        children: (
+          <Stack gap="xs">
+            {failed.map((name, i) => <Text key={i} size="sm">{name}</Text>)}
+          </Stack>
+        ),
+      })
     }
   }
 

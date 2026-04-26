@@ -13,14 +13,14 @@ interface Props {
 export function CollageCanvas({ images, grid, aspectRatio, cropOffsets }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [containerWidth, setContainerWidth] = useState(0)
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
     const observer = new ResizeObserver(([entry]) => {
       const width = entry.contentRect.width
-      setCanvasSize((prev) => (prev.width === width ? prev : { width, height: 0 }))
+      setContainerWidth((prev) => (prev === width ? prev : width))
     })
     observer.observe(container)
     return () => observer.disconnect()
@@ -28,13 +28,13 @@ export function CollageCanvas({ images, grid, aspectRatio, cropOffsets }: Props)
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || canvasSize.width === 0) return
-    canvas.width = canvasSize.width
-    canvas.height = Math.round(canvasSize.width * aspectRatio)
+    if (!canvas || containerWidth === 0) return
+    canvas.width = containerWidth
+    canvas.height = Math.round(containerWidth * aspectRatio)
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     drawCollage(ctx, canvas, images, grid, cropOffsets)
-  }, [images, canvasSize, grid, aspectRatio, cropOffsets])
+  }, [images, containerWidth, grid, aspectRatio, cropOffsets])
 
   return (
     <div ref={containerRef} style={{ width: '100%' }}>

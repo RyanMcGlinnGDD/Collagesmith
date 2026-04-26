@@ -13,16 +13,26 @@ function loadImageElement(file: File): Promise<{ element: HTMLImageElement; url:
   })
 }
 
-export async function loadImages(files: File[]): Promise<LoadedImage[]> {
-  return Promise.all(
+export interface LoadImagesResult {
+  loaded: LoadedImage[]
+  failed: string[]
+}
+
+export async function loadImages(files: File[]): Promise<LoadImagesResult> {
+  const results = await Promise.allSettled(
     files.map(async (file) => {
       const { element, url } = await loadImageElement(file)
-      return {
-        id: crypto.randomUUID(),
-        element,
-        name: file.name,
-        url,
-      }
+      return { id: crypto.randomUUID(), element, name: file.name, url }
     })
   )
+  const loaded: LoadedImage[] = []
+  const failed: string[] = []
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      loaded.push(r.value as LoadedImage)
+    } else {
+      failed.push(files[i].name)
+    }
+  })
+  return { loaded, failed }
 }

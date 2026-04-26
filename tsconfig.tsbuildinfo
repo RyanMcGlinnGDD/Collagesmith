@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/types.ts","./src/components/collagecanvas.tsx","./src/components/dropzonearea.tsx","./src/lib/drawcollage.test.ts","./src/lib/drawcollage.ts","./src/lib/gridlayout.test.ts","./src/lib/gridlayout.ts","./src/lib/loadimages.ts","./src/routes/__root.tsx","./src/routes/index.tsx","./src/test/setup.ts"],"errors":true,"version":"6.0.3"}
