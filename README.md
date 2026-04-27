@@ -1,6 +1,6 @@
 # Collagesmith
 
-Collagesmith is a browser-based image collage creation tool. Drop images in and they will be arranged in a grid. Adjust crops and aspect ratio and export at any resolution.
+Collagesmith is a browser-based image collage creation tool. Drop images in and they will be arranged in a grid. Adjust crops, column count and aspect ratio, then export at any resolution.
 
 ## Features
 
@@ -12,7 +12,7 @@ The application prioritizes non-destructive, real-time control. Each image has a
 
 ## Technical Foundation
 
-Built with React 18, TypeScript, Vite, and Mantine 7 for the UI layer. TanStack Router handles navigation and Vitest with jsdom handles quality assurance. All image data lives in memory as object URLs for the duration of the session; "closing or refreshing the tab clears all loaded images."
+Built with React 18, TypeScript, Vite, and Mantine 7 for the UI layer. TanStack Router handles navigation and Vitest with jsdom handles quality assurance. All image data lives in memory as object URLs for the duration of the session.
 
 ## Architecture
 
