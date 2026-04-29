@@ -10,13 +10,13 @@ A browser-based tool for assembling images into a tiled collage. Configure the g
 
 - **Drag and drop** images onto the canvas or click to open a file picker
 - **Add more** at any time via the + button in the header
-- If any file in a batch fails to load, a modal lists the filenames that were skipped - the rest still load
+- If any file in a batch fails to load, a modal lists the filenames that were skipped with the rest loading as normal
 
 ### Grid layout
 
 - **Columns** - set the number of columns; rows adjust automatically to fit all images
 - On first load the column count is automatically chosen to make the canvas closest to **16:9**
-- **Tile aspect ratio** - 16:9, 4:3, 1:1, or a custom W:H ratio
+- **Tile aspect ratio**: 16:9, 4:3, 1:1, or a custom W:H ratio
 - **Randomize** shuffles the image order across all slots
 
 ### Gap handling
@@ -29,14 +29,14 @@ A browser-based tool for assembling images into a tiled collage. Configure the g
 
 - Each image has a **crop slider** that pans it within its tile
 - The slider moves horizontally for landscape images in portrait tiles, and vertically for portrait images in landscape tiles
-- Images that exactly match the tile aspect ratio have no excess - their slider is disabled
+- Images that exactly match the tile aspect ratio with no excess have their slider is disabled
 
 ### Export
 
-- Set the export **width or height** - the other dimension updates automatically to match the canvas aspect ratio
+- Set the export **width or height**; the other dimension updates automatically to match the canvas aspect ratio
 - Both dimensions are capped at **8192 px**
-- **Format** - PNG (lossless), JPEG, or WebP
-- The exported file is rendered directly to an offscreen canvas at the chosen resolution, not screenshotted from the viewport
+- **Format**: PNG (lossless), JPEG, or WebP
+- The exported file is rendered directly to an offscreen canvas at the chosen resolution (not screenshotted from the viewport)
 
 ---
 
@@ -63,9 +63,9 @@ A browser-based tool for assembling images into a tiled collage. Configure the g
 ### Exporting
 
 1. Click the download icon in the header
-2. Enter a width or height - the other field updates automatically
+2. Enter a width or height. The other field updates automatically
 3. Select a format
-4. Click **Export** - the file downloads immediately
+4. Click **Export** to download the file immediately
 
 ---
 
